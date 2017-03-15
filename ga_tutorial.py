@@ -1,6 +1,9 @@
 """
 
 This is a python version of the genetic algorithm tutorial from ai-junkie.com
+converted by Ryan Massoth
+http://www.ryanmassoth.com
+https://github.com/rmassoth/ga_tut.git
 """
 import random
 
@@ -39,6 +42,12 @@ def parse_bits(bit_string, gene_buffer, gene_length):
     of valid operators and numbers.  Don't forget we are looking for operator
     number - operator - number and so on... We ignore the unused genes 1111 and
     1110
+
+    I changed this one to include gene_length as a parameter for automated test
+    purposes.
+
+    Also, it doesn't return the number of elements like the original c++
+    program because it's unnecessary in Python.
     """
 
     # Flag to determine if we are looking for an operator or a number
@@ -68,16 +77,13 @@ def parse_bits(bit_string, gene_buffer, gene_length):
                 gene_buffer.append(this_gene)
                 continue
 
-    """
-
-    Now we have to run through buffer to see if a possible divide by zero
-    is included and delete it. (id a '/' followed by a '0').  We take an
-    easy way out here and just change the '/' to a '+'.  This will not
-    effect the evolution of the solution.
-    """
-    for i in range(len(gene_buffer)):
-        if gene_buffer[i] == 13 and gene_buffer[i+1] == 0:
-            gene_buffer = 10
+    # Now we have to run through buffer to see if a possible divide by zero
+    # is included and delete it. (id a '/' followed by a '0').  We take an
+    # easy way out here and just change the '/' to a '+'.  This will not
+    # effect the evolution of the solution.
+    for i, val in enumerate(gene_buffer):
+        if val == 13 and gene_buffer[i+1] == 0:
+            gene_buffer[i] = 10
 
 def assign_fitness(bit_string, target_value):
     """
@@ -118,3 +124,56 @@ def assign_fitness(bit_string, target_value):
         return 999.0
     else:
         return 1/abs(target_value - result)
+
+def print_chromo(bit_string):
+    """
+
+    Decodes and prints a chromo to screen.  This is a little redundant for
+    Python but for the sake of following the original source I will copy it.
+    I will do this better in my own code eventually.
+    """
+    # Buffer to hold the chromosome
+    gene_buffer = []
+
+    # Parse the string into genes
+    parse_bits(bit_string, gene_buffer, GENE_LENGTH)
+
+    # Loop over every integer in the buffer and convert it to a string
+    # representing the uncoded values
+    for _, val in enumerate(gene_buffer):
+        print_gene_symbol(val)
+
+def print_gene_symbol(val):
+    """
+
+    Given and integer, this function outputs its symbol to the screen
+    """
+
+    if val < 10:
+        print(val, " ", end="")
+    else:
+        if val == 10:
+            print("+", end="")
+        elif val == 11:
+            print("-", end="")
+        elif val == 12:
+            print("*", end="")
+        elif val == 13:
+            print("/", end="")
+        print(" ", end="")
+
+def mutate(bit_string):
+    """
+
+    Mutates a chromosome's bits dependent on the MUTATION_RATE
+    """
+    for i, _ in enumerate(bit_string):
+        original_string = bit_string
+        mutated = False
+        if RANDOM_NUM() < MUTATION_RATE:
+            mutated = True
+            if bit_string[i] == "1":
+                bit_string[i] = "0"
+            else:
+                bit_string[i] = "1"
+        return mutated, original_string
