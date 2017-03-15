@@ -18,6 +18,15 @@ MAX_ALLOWABLE_GENERATIONS = 400
 # return random number between 0 and 1
 RANDOM_NUM = random.random
 
+class chromo_typ():
+    """
+
+    Define a class which will define a chromosome
+    """
+    def __init__(self, bits="", fitness=0.0):
+        self.bits = bits
+        self.fitness = fitness
+
 def get_random_bits(length):
     """Return a string of random 1s and 0s of desired length."""
     bit_string = ""
@@ -177,3 +186,44 @@ def mutate(bit_string):
             else:
                 bit_string[i] = "1"
         return mutated, original_string
+
+def crossover(offspring1, offspring2):
+    """
+
+    Dependent on the CROSSOVER_RATE, this function selects a random point along
+    the length of the chromosomes and swaps all the bits after that point
+    """
+    # Dependent on the crossover rate
+    if RANDOM_NUM() < CROSSOVER_RATE:
+        # Create a random crossover point
+        crossover = int(RANDOM_NUM() * CHROMO_LENGTH)
+        t1 = "{}{}".format(
+            offspring1[crossover], offspring2[crossover:CHROMO_LENGTH])
+        t2 = "{}{}".format(
+            offspring2[crossover], offspring1[crossover:CHROMO_LENGTH])
+
+        offspring1 = t1
+        offspring2 = t2
+        return True
+    else:
+        return False
+
+def roulette(total_fitness, population):
+    """
+
+    Selects a chromosome from the population via roulette wheel selection.
+    """
+    # Generate a random number between 0 and total fitness count
+    pie_slice = RANDOM_NUM() * total_fitness
+
+    # Go through the chromosomes adding up the fitness so far
+    fitness_so_far = 0.0
+
+    for i in range(POP_SIZE):
+        fitness_so_far += population[i].fitness
+
+        # If the fitness so far > random number return the chromo at this point
+        if fitness_so_far >= pie_slice:
+            return population[i].bits
+
+    return ""

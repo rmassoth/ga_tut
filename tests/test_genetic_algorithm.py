@@ -45,9 +45,25 @@ def test_mutate():
 
 def test_crossover():
     pass
+    # offspring1 = None
+    # offspring2 = None
+    # crossed_over = ga_tutorial.crossover()
+    # if crossed_over:
+    #     pass
+    # else:
+    #     pass
 
 def test_roulette():
+
     pass
 
 def test_roulette_empty():
+
     pass
+
+def test_chromo_class():
+    bits = "11001010"
+    fitness = 0.5
+    my_chromo = ga_tutorial.chromo_typ(bits=bits, fitness=fitness)
+    assert my_chromo.bits == bits
+    assert my_chromo.fitness == fitness
