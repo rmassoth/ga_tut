@@ -196,19 +196,17 @@ def crossover(offspring1, offspring2):
     # Dependent on the crossover rate
     if RANDOM_NUM() < CROSSOVER_RATE:
         # Create a random crossover point
-        crossover = int(RANDOM_NUM() * CHROMO_LENGTH)
+        crossover = int(RANDOM_NUM() * len(offspring1))
         t1 = "{}{}".format(
-            offspring1[crossover], offspring2[crossover:CHROMO_LENGTH])
+            offspring1[:crossover], offspring2[crossover:])
         t2 = "{}{}".format(
-            offspring2[crossover], offspring1[crossover:CHROMO_LENGTH])
+            offspring2[:crossover], offspring1[crossover:])
 
-        offspring1 = t1
-        offspring2 = t2
-        return True
+        return (t1, t2, True,)
     else:
-        return False
+        return (offspring1, offspring2, False)
 
-def roulette(total_fitness, population):
+def roulette(total_fitness, population, pop_size):
     """
 
     Selects a chromosome from the population via roulette wheel selection.
@@ -219,7 +217,7 @@ def roulette(total_fitness, population):
     # Go through the chromosomes adding up the fitness so far
     fitness_so_far = 0.0
 
-    for i in range(POP_SIZE):
+    for i in range(pop_size):
         fitness_so_far += population[i].fitness
 
         # If the fitness so far > random number return the chromo at this point
@@ -227,3 +225,40 @@ def roulette(total_fitness, population):
             return population[i].bits
 
     return ""
+
+def main():
+    """
+
+    Main function where all the magic happens.
+    """
+
+    # Loop forever.  I will probably change this.
+    while True:
+        population = []
+
+        target = input("Input a target number: ")
+
+        for _ in range(POP_SIZE):
+            new_chromo = chromo_typ(bits=get_random_bits, fitness=0.0)
+            population.append(new_chromo)
+
+        generations_required_to_find_solution = 0
+        # We will set this flag if a solution has been found
+        bFound = False
+
+        while !bFound:
+            # Main GA loop
+
+            # Used for roulette wheel sampling
+            total_fitness = 0.0
+
+            # Test and update the fitness of every chromosome in the 
+            # population
+            for i in range(POP_SIZE):
+                population[i].fitness = assign_fitness(
+                    population[i].bits, target)
+                total_fitness += population[i].fitness
+
+# Run main function if started from the command line
+if __name__ == "__main__":
+    main()

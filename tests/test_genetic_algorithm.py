@@ -43,27 +43,37 @@ def test_mutate():
     else:
         assert original_string == bit_string
 
-def test_crossover():
-    pass
-    # offspring1 = None
-    # offspring2 = None
-    # crossed_over = ga_tutorial.crossover()
-    # if crossed_over:
-    #     pass
-    # else:
-    #     pass
-
-def test_roulette():
-
-    pass
-
-def test_roulette_empty():
-
-    pass
-
 def test_chromo_class():
     bits = "11001010"
     fitness = 0.5
     my_chromo = ga_tutorial.chromo_typ(bits=bits, fitness=fitness)
     assert my_chromo.bits == bits
     assert my_chromo.fitness == fitness
+
+def test_roulette():
+    bits = "11001010"
+    fitness = 0.5
+    my_chromo = ga_tutorial.chromo_typ(bits=bits, fitness=fitness)
+    selected_chromo = ga_tutorial.roulette(fitness, [my_chromo], 1)
+    assert selected_chromo == my_chromo.bits
+
+def test_roulette_empty():
+    selected_chromo = ga_tutorial.roulette(0, [], 0)
+    assert selected_chromo == ""
+
+def test_crossover():
+    offspring1 = "11001010"
+    offspring2 = "00100101"
+    offspring1_new, offspring2_new, crossed_over, = ga_tutorial.crossover(
+        offspring1, offspring2)
+    for _ in range(1000):
+        if crossed_over:
+            print(offspring1, offspring1_new)
+            print(offspring2, offspring2_new)
+            assert offspring1_new != offspring1
+            assert offspring2_new != offspring2
+            assert len(offspring1_new) == len(offspring1)
+            assert len(offspring2_new) == len(offspring2)
+        else:
+            assert offspring1_new == offspring1
+            assert offspring2_new == offspring2
