@@ -13,7 +13,7 @@ MUTATION_RATE = 0.001
 POP_SIZE = 100
 CHROMO_LENGTH = 300
 GENE_LENGTH = 4
-MAX_ALLOWABLE_GENERATIONS = 400
+MAX_ALLOWABLE_GENERATIONS = 20
 
 # return random number between 0 and 1
 RANDOM_NUM = random.random
@@ -91,8 +91,9 @@ def parse_bits(bit_string, gene_buffer, gene_length):
     # easy way out here and just change the '/' to a '+'.  This will not
     # effect the evolution of the solution.
     for i, val in enumerate(gene_buffer):
-        if val == 13 and gene_buffer[i+1] == 0:
-            gene_buffer[i] = 10
+        if i<len(gene_buffer)-1:
+            if val == 13 and gene_buffer[i+1] == 0:
+                gene_buffer[i] = 10
 
 def assign_fitness(bit_string, target_value):
     """
@@ -112,27 +113,22 @@ def assign_fitness(bit_string, target_value):
     # Now we calculate what this represents
     result = 0.0
 
-    for i in range(0, len(gene_buffer), 2):
+    for i in range(0, len(gene_buffer)-1, 2):
         # No switch/case in Python :'(
         if gene_buffer[i] == 10:
             result += gene_buffer[i+1]
-            break
         elif gene_buffer[i] == 11:
             result -= gene_buffer[i+1]
-            break
         elif gene_buffer[i] == 12:
             result *= gene_buffer[i+1]
-            break
         elif gene_buffer[i] == 13:
             result /= gene_buffer[i+1]
-            break
-
     # Now we calculate the fitness.  First check to see if a solution has been
     # Found and assign an arbitrarily high fitness score if this is so.
     if result == target_value:
         return 999.0
     else:
-        return 1/abs(target_value - result)
+        return 10/abs(target_value - result)
 
 def print_chromo(bit_string):
     """
@@ -185,7 +181,7 @@ def mutate(bit_string):
                 bit_string[i] = "0"
             else:
                 bit_string[i] = "1"
-        return mutated, original_string
+        return original_string, mutated
 
 def crossover(offspring1, offspring2):
     """
@@ -236,17 +232,21 @@ def main():
     while True:
         population = []
 
+        # Get a target number from the user. (no error checking)
         target = input("Input a target number: ")
 
+        # First create a random population, all with zero fitness
         for _ in range(POP_SIZE):
-            new_chromo = chromo_typ(bits=get_random_bits, fitness=0.0)
+            new_chromo = chromo_typ(bits=get_random_bits(CHROMO_LENGTH),
+                                    fitness=0.0)
             population.append(new_chromo)
 
         generations_required_to_find_solution = 0
         # We will set this flag if a solution has been found
         bFound = False
+        total_fitness_list = []
 
-        while !bFound:
+        while not bFound:
             # Main GA loop
 
             # Used for roulette wheel sampling
@@ -256,8 +256,61 @@ def main():
             # population
             for i in range(POP_SIZE):
                 population[i].fitness = assign_fitness(
-                    population[i].bits, target)
+                    population[i].bits, float(target))
                 total_fitness += population[i].fitness
+            total_fitness_list.append(total_fitness)
+            # Check to see if we have found any solutions (fitness will be 999)
+            for i in range(POP_SIZE):
+                if population[i].fitness == 999.0:
+                    print("Solution found in ",
+                          generations_required_to_find_solution, 
+                          " generations")
+                    print_chromo(population[i].bits)
+                    bFound = True
+                    break
+
+            # Create a new population by selecting two parents at a time and 
+            # creating offspring by applying crossover and mutation.  Do this
+            # until the desired number of offspring have been created.
+
+            # Define some temporary storage for the new population we are about
+            # to create.
+            temp = []
+            cPop = 0
+
+            # Loop until we have created POP_SIZE new chromosomes
+            while cPop < POP_SIZE:
+                # We are going to create the new population by grabbing members
+                # of the old population two at a time via roulette wheel 
+                # selection.
+                offspring1 = roulette(total_fitness, population, POP_SIZE)
+                offspring2 = roulette(total_fitness, population, POP_SIZE)
+
+                # Add crossover dependent on the crossover rate
+                offspring1, offspring2, crossed_over = crossover(offspring1,
+                                                                 offspring2)
+                # Add these offspring to the new population. (Assigning zero as 
+                # their fitness scores)
+                temp.append(chromo_typ(offspring1, 0.0))
+                temp.append(chromo_typ(offspring2, 0.0))
+                cPop += 2
+
+            # Copy temp population into main population array
+            population = temp
+
+            generations_required_to_find_solution += 1
+
+            # Exit app if no solution found within the maximum allowable number
+            # of generations
+            if generations_required_to_find_solution > \
+               MAX_ALLOWABLE_GENERATIONS:
+
+                print("No solutions found this run!")
+                bFound = True
+
+        with open("fitness.csv", 'w') as output:
+            for i, val in enumerate(total_fitness_list):
+                output.write('{},{}\n'.format(i, val))
 
 # Run main function if started from the command line
 if __name__ == "__main__":
