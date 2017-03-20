@@ -10,10 +10,10 @@ import random
 # constants
 CROSSOVER_RATE = 0.7
 MUTATION_RATE = 0.001
-POP_SIZE = 100
+POP_SIZE = 1000
 CHROMO_LENGTH = 300
 GENE_LENGTH = 4
-MAX_ALLOWABLE_GENERATIONS = 20
+MAX_ALLOWABLE_GENERATIONS = 100
 
 # return random number between 0 and 1
 RANDOM_NUM = random.random
@@ -275,6 +275,7 @@ def main():
 
             # Define some temporary storage for the new population we are about
             # to create.
+            previous_generation = population
             temp = []
             cPop = 0
 
@@ -309,8 +310,9 @@ def main():
                 bFound = True
 
         with open("fitness.csv", 'w') as output:
-            for i, val in enumerate(total_fitness_list):
-                output.write('{},{}\n'.format(i, val))
+            for i, val in enumerate(previous_generation):
+                output.write('{},{}\n'.format(
+                    val.fitness, val.bits))
 
 # Run main function if started from the command line
 if __name__ == "__main__":
